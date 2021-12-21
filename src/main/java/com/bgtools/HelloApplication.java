@@ -2,6 +2,7 @@ package com.bgtools;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -12,20 +13,19 @@ import net.sf.json.JSONObject;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+
 
 
 public class HelloApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-
-        Pane pane = new Pane();
+        BorderPane borderPane = new BorderPane();
+        borderPane.setPrefSize(500,400);
+        borderPane.setBackground(new Background(new BackgroundFill(Color.rgb(200, 200, 200), null, null)));
 
         TabPane tabPane = new TabPane();
-        tabPane.setPrefWidth(600);
-        tabPane.setPrefHeight(400);
+//        tabPane.setPrefSize(400,300);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         tabPane.setBackground(new Background(new BackgroundFill(Color.rgb(200, 200, 200), null, null)));
 
@@ -33,7 +33,7 @@ public class HelloApplication extends Application {
         Tab dfStateTab = new Tab("代付狀態變更");
         Tab logTab = new Tab("Log相关指令");
         Tab hostTab = new Tab("主機測試");
-        Scene scene = new Scene(pane, 380, 280);
+        Scene scene = new Scene(borderPane, 380, 280);
 
         //分頁設定
         GridPane gridPg1 = new GridPane();
@@ -192,6 +192,7 @@ public class HelloApplication extends Application {
         dfData.setWrapText(true);
         dfData.setMaxHeight(100);
         dfData.setMaxWidth(270);
+        dfData.setPromptText("Commpay or extMap 資訊");
         gridPg2.add(dfData, 1, 2, 3, 1);
 
         gridPg2.add(new Label("狀態變更 ： "), 0, 3);
@@ -354,6 +355,7 @@ public class HelloApplication extends Application {
         gridPg4.add(new Label("域名测试 ： "), 0, 2);
         TextField hostTest = new TextField();
         hostTest.setMaxWidth(220);
+        hostTest.setPromptText("測試主機連線狀態");
         gridPg4.add(hostTest, 1, 2, 2, 1);
 
         Button hostTestBtn = new Button("测试");
@@ -367,12 +369,13 @@ public class HelloApplication extends Application {
 
         TextField hostText = new TextField();
         hostText.setMaxWidth(220);
+        hostText.setPromptText("輸入網址獲得IP");
         gridPg4.add(hostText, 1, 3, 2, 1);
 
         Button searchIpBtn = new Button("查詢");
         gridPg4.add(searchIpBtn, 3, 3, 2, 1);
         searchIpBtn.setOnAction(event -> {
-            uitl.showaAlert("测试结果","服务器IP为 ：" +uitl.getHostIp(hostText.getText()), Alert.AlertType.INFORMATION);
+            uitl.showaAlert("测试结果", "服务器IP为 ：" + uitl.getHostIp(hostText.getText()), Alert.AlertType.INFORMATION);
         });
 
         vBoxPg4.getChildren().addAll(gridPg4);
@@ -380,7 +383,15 @@ public class HelloApplication extends Application {
 
 //視窗頁面配置
         tabPane.getTabs().addAll(linuxTab, dfStateTab, logTab, hostTab);
-        pane.getChildren().add(tabPane);
+
+        Label versionText = new Label("V1.0");
+        HBox hBox = new HBox();
+        hBox.getChildren().add(versionText);
+        hBox.setAlignment(Pos.CENTER_RIGHT);
+
+        borderPane.setBottom(hBox);
+        borderPane.setCenter(tabPane);
+
         primaryStage.getIcons().add(new Image("logo-bg.png"));
         primaryStage.setTitle("BigGame Payment Tools");
         primaryStage.setScene(scene);
