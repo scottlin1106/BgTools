@@ -12,8 +12,8 @@ import java.util.*;
 public class uitl {
     public static String getLogDate(String date,Integer hour) {
         LocalDate localDate = LocalDate.parse(date);
-        if (hour < 12)
-            localDate = localDate.plusDays(-1);
+        if (hour >= 12)
+            localDate = localDate.plusDays(+1);
         return localDate.toString();
     }
 
