@@ -280,6 +280,7 @@ public class HelloApplication extends Application {
         gridPg3.add(linuxLogBtn, 0, 5, 4, 1);
         linuxLogBtn.setOnAction(actionEvent -> {
             String logSearchStr = uitl.setLogStr("" + checkInDatePickerPg3.getValue(), keyWord.getText(), choiceBox.getValue().toString(), uatRBPg3.isSelected());
+            System.out.println("logSearchStr = " + logSearchStr);
             if (!"".equals(logSearchStr))
                 uitl.copyStr(logSearchStr, "Log " + linuxLogBtn.getText());
         });

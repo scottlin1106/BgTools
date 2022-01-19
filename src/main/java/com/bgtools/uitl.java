@@ -10,11 +10,9 @@ import java.time.LocalDate;
 import java.util.*;
 
 public class uitl {
-    public static String getLogDate(String date,Integer hour) {
+    public static String getLogDate(String date) {
         LocalDate localDate = LocalDate.parse(date);
-        if (hour >= 12)
-            localDate = localDate.plusDays(+1);
-        return localDate.toString();
+            return localDate.toString();
     }
 
 
@@ -23,6 +21,7 @@ public class uitl {
         LocalDate date = LocalDate.parse(day);
         long day1 = now.toEpochDay();
         long day2 = date.toEpochDay();
+
         if (Math.abs(day2 - day1) > 7) {
             return false;
         } else {
@@ -158,18 +157,20 @@ public class uitl {
             if (isUat) {
                 lsStr = textPara.SearchStr + " | grep -C " + col + " " + keyword;
             } else {
-                if (keyword.length() > 7) {
+                String day = keyword.substring(4, 6);
+
+                if (keyword.length() > 7 && Integer.parseInt(day)<31) {
                     String year = "20" + keyword.substring(0, 2);
                     String month = keyword.substring(2, 4);
-                    String day = keyword.substring(4, 6);
                     Integer hour = Integer.parseInt(keyword.substring(6, 8));
                     String vDate = year + "-" + month + "-" + day;
                     if (checkDate(vDate) && validateDate(vDate)) {
-                        lsStr = textPara.SearchStr + "." + getLogDate(vDate,hour) + ".log";
+                        lsStr = textPara.SearchStr + "." + getLogDate(vDate) + ".log";
                     } else if (!validateDate(vDate)) {
                         showaAlert("提示", "查找日期超出LOG存檔期限(七天)，請重新查詢。", Alert.AlertType.INFORMATION);
                         lsStr = "";
                     }
+
                 } else {
                     lsStr = textPara.SearchStr + "." + date + ".log";
                 }
@@ -179,7 +180,6 @@ public class uitl {
         } else if (!isUat) {
             lsStr = textPara.SearchStr + "." + date + ".log";
         }
-
         return lsStr;
     }
 
