@@ -12,7 +12,7 @@ import java.util.*;
 public class uitl {
     public static String getLogDate(String date) {
         LocalDate localDate = LocalDate.parse(date);
-            return localDate.toString();
+        return localDate.toString();
     }
 
 
@@ -100,8 +100,8 @@ public class uitl {
         return resultMap;
     }
 
-    public static Map<String, String> dfOutStr(String inStr, String dfName) {
-        Map<String, String> postMap = new HashMap<String, String>();
+    public static Map<String, Object> dfOutStr(String inStr, String dfName) {
+        Map<String, Object> postMap = new HashMap<String, Object>();
 
         try {
             if (inStr.contains(", ") && inStr.contains("=")) {
@@ -157,20 +157,21 @@ public class uitl {
             if (isUat) {
                 lsStr = textPara.SearchStr + " | grep -C " + col + " " + keyword;
             } else {
-                String day = keyword.substring(4, 6);
+                if (isNumeric(keyword)) {
+                    String day = keyword.substring(4, 6);
+                    if (keyword.length() > 7 && Integer.parseInt(day) < 31) {
+                        String year = "20" + keyword.substring(0, 2);
+                        String month = keyword.substring(2, 4);
+                        Integer hour = Integer.parseInt(keyword.substring(6, 8));
+                        String vDate = year + "-" + month + "-" + day;
+                        if (checkDate(vDate) && validateDate(vDate)) {
+                            lsStr = textPara.SearchStr + "." + getLogDate(vDate) + ".log";
+                        } else if (!validateDate(vDate)) {
+                            showaAlert("提示", "查找日期超出LOG存檔期限(七天)，請重新查詢。", Alert.AlertType.INFORMATION);
+                            lsStr = "";
+                        }
 
-                if (keyword.length() > 7 && Integer.parseInt(day)<31) {
-                    String year = "20" + keyword.substring(0, 2);
-                    String month = keyword.substring(2, 4);
-                    Integer hour = Integer.parseInt(keyword.substring(6, 8));
-                    String vDate = year + "-" + month + "-" + day;
-                    if (checkDate(vDate) && validateDate(vDate)) {
-                        lsStr = textPara.SearchStr + "." + getLogDate(vDate) + ".log";
-                    } else if (!validateDate(vDate)) {
-                        showaAlert("提示", "查找日期超出LOG存檔期限(七天)，請重新查詢。", Alert.AlertType.INFORMATION);
-                        lsStr = "";
                     }
-
                 } else {
                     lsStr = textPara.SearchStr + "." + date + ".log";
                 }
@@ -183,20 +184,21 @@ public class uitl {
         return lsStr;
     }
 
-    public static Map<String, String> hostData(String auth, String method) {
-        Map<String, String> postMap = new HashMap<String, String>();
+    public static Map<String, Object> hostData(String auth, String method) {
+        Map<String, Object> postMap = new HashMap<String, Object>();
         postMap.put("auth", auth);
         postMap.put("method", method);
         return postMap;
     }
 
-    public static String hostStr(String bodyStr, String hostIp) {
+    public static String hostStr(String bodyStr, String hostIp,String type) {
         String apenString = "";
+        String serverStr = "Tomcat 服務 ：";
+        String redisStr = "Redis 服務 ：";
         try {
             if (!"".equals(bodyStr)) {
                 JSONObject jsObj = JSONObject.fromObject(bodyStr);
-                String serverStr = "Tomcat 服務 ：";
-                String redisStr = "Redis 服務 ：";
+
                 if (jsObj.optBoolean("serverStatus"))
                     serverStr += "正常";
                 else
@@ -210,7 +212,18 @@ public class uitl {
                         "测试主机IP ：" + hostIp + "\n"
                                 + serverStr + "\n"
                                 + redisStr + "\n";
+            } else {
+                String serverStatus = okHttp3Util.formPost("http://" + hostIp + "/"+type+"/index.jsp", new HashMap<>());
+                if (serverStatus.contains("1")) {
+                    serverStr += "正常";
+                    apenString =
+                            "测试主机IP ：" + hostIp + "\n"
+                                    + serverStr + "\n";
+                } else {
+                    apenString = "連線異常，請檢查主機IP是否正確！";
+                }
             }
+
         } catch (Exception e) {
             apenString = bodyStr;
         }
@@ -218,11 +231,12 @@ public class uitl {
         return apenString;
     }
 
-    public static String hostText(String hostIp, String masterAuth, String method) {
+    public static String hostText(String hostIp, String masterAuth, String method,String type) {
         String showStr = "";
+
         showStr = uitl.hostStr(
-                okHttp3Uitl.formPostSkipSSL("http://" + hostIp + "/pay/jsp/getServerStatus.jsp", uitl.hostData(masterAuth, method))
-                , hostIp);
+                okHttp3Util.formPost("http://" + hostIp + "/pay/jsp/getServerStatus.jsp", uitl.hostData(masterAuth, method))
+                , hostIp,type);
         return showStr;
 
     }
@@ -234,7 +248,7 @@ public class uitl {
             hostUrl = hostUrl.substring(0, hostUrl.indexOf("/"));
         }
         String HostIP = "";
-        String bodyStr = okHttp3Uitl.okHttp3Get(url + hostUrl);
+        String bodyStr = okHttp3Util.okHttp3Get(url + hostUrl);
         HostIP = JSONObject.fromObject(bodyStr).optString("query");
         return HostIP;
 
@@ -247,6 +261,31 @@ public class uitl {
         alert.setContentText(text);
         alert.getDialogPane().getScene().getWindow();
         alert.showAndWait();
+    }
+
+    public static boolean isNumeric(String str) {
+        for (int i = str.length(); --i >= 0; ) {
+            if (!Character.isDigit(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static String nullToSpace(String str) {
+        if (str == null) {
+            return "";
+        } else {
+            return str;
+        }
+    }
+
+    public static boolean isNullOrSpace(String str) {
+        if (nullToSpace(str).equals("")) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 

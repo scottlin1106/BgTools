@@ -15,13 +15,12 @@ import java.io.IOException;
 import java.time.LocalDate;
 
 
-
 public class HelloApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
         BorderPane borderPane = new BorderPane();
-        borderPane.setPrefSize(500,400);
+        borderPane.setPrefSize(500, 400);
         borderPane.setBackground(new Background(new BackgroundFill(Color.rgb(200, 200, 200), null, null)));
 
         TabPane tabPane = new TabPane();
@@ -205,7 +204,7 @@ public class HelloApplication extends Application {
             else
                 url = textPara.prdUrl + textPara.dfSuccess;
 
-            String bodyStr = okHttp3Uitl.formPostSkipSSL(url, uitl.dfOutStr(dfData.getText(), dfName.getText()));
+            String bodyStr = okHttp3Util.formPost(url, uitl.dfOutStr(dfData.getText(), dfName.getText()));
             JSONObject jsObj = JSONObject.fromObject(bodyStr);
             if ("1".equalsIgnoreCase(jsObj.optString("result"))) {
                 uitl.showaAlert("请求返回", "代付状态变更成功，请客户刷新页面查看", Alert.AlertType.INFORMATION);
@@ -223,7 +222,7 @@ public class HelloApplication extends Application {
             else
                 url = textPara.prdUrl + textPara.dfFailure;
 
-            String bodyStr = okHttp3Uitl.formPostSkipSSL(url, uitl.dfOutStr(dfData.getText(), dfName.getText()));
+            String bodyStr = okHttp3Util.formPost(url, uitl.dfOutStr(dfData.getText(), dfName.getText()));
             JSONObject jsObj = JSONObject.fromObject(bodyStr);
 
             if ("0".equalsIgnoreCase(jsObj.optString("result"))) {
@@ -334,7 +333,7 @@ public class HelloApplication extends Application {
         Button paymentHostBtn = new Button("测试");
         gridPg4.add(paymentHostBtn, 3, 0, 2, 1);
         paymentHostBtn.setOnAction(actionEvent -> {
-            uitl.showaAlert("伺服器測試結果", uitl.hostText(paymentCB.getValue().toString(), propertiesManager.getProperty("masterAuth").toString(), "1"), Alert.AlertType.INFORMATION);
+                uitl.showaAlert("伺服器測試結果", uitl.hostText(paymentCB.getValue().toString(), propertiesManager.getProperty("masterAuth").toString(), "1","pay"), Alert.AlertType.INFORMATION);
         });
 
         gridPg4.add(new Label("代付主機 ： "), 0, 1);
@@ -350,7 +349,7 @@ public class HelloApplication extends Application {
         Button autoPayHostBtn = new Button("测试");
         gridPg4.add(autoPayHostBtn, 3, 1, 2, 1);
         autoPayHostBtn.setOnAction(actionEvent -> {
-            uitl.showaAlert("伺服器測試結果", uitl.hostText(autoPayCB.getValue().toString(), propertiesManager.getProperty("masterAuth").toString(), "1"), Alert.AlertType.INFORMATION);
+            uitl.showaAlert("伺服器測試結果", uitl.hostText(autoPayCB.getValue().toString(), propertiesManager.getProperty("masterAuth").toString(), "1","autopay"), Alert.AlertType.INFORMATION);
         });
 
         gridPg4.add(new Label("域名测试 ： "), 0, 2);
@@ -363,7 +362,7 @@ public class HelloApplication extends Application {
         gridPg4.add(hostTestBtn, 3, 2, 2, 1);
         hostTestBtn.setOnAction(event -> {
             System.out.println(" = " + uitl.getHostIp(hostTest.getText()));
-            uitl.showaAlert("伺服器測試結果", uitl.hostText(uitl.getHostIp(hostTest.getText()), propertiesManager.getProperty("masterAuth").toString(), "1"), Alert.AlertType.INFORMATION);
+            uitl.showaAlert("伺服器測試結果", uitl.hostText(uitl.getHostIp(hostTest.getText()), propertiesManager.getProperty("masterAuth").toString(), "1","pay"), Alert.AlertType.INFORMATION);
         });
 
         gridPg4.add(new Label("取得IP ： "), 0, 3);
