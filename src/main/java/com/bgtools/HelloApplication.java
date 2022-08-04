@@ -132,13 +132,23 @@ public class HelloApplication extends Application {
         Button chkIpWhiteListBtn = new Button("ipWhiteList");
         chkIpWhiteListBtn.setPrefSize(130, 10);
         chkIpWhiteListBtn.setOnAction(actionEvent -> {
-            uitl.copyStr(textPara.lsStr + textPara.paymentClassesStr + "ipWhiteList.properties \n", chkIpWhiteListBtn.getText() + ".properties 检查指令", sudoYRBPg1.isSelected());
+            System.out.println("[ folderName.getText()) ] :" + folderName.getText());
+            if(!uitl.isNullOrSpace(folderName.getText())){
+                uitl.copyStr("cat " + textPara.paymentClassesStr + "ipWhiteList.properties | grep "+ folderName.getText(), chkIpWhiteListBtn.getText() + ".properties 检查指令", sudoYRBPg1.isSelected());
+            }else {
+                uitl.copyStr(textPara.lsStr + textPara.paymentClassesStr + "ipWhiteList.properties \n", chkIpWhiteListBtn.getText() + ".properties 检查指令", sudoYRBPg1.isSelected());
+            }
         });
 
         Button chkPaymentCNAMEBtn = new Button("paymentCNAME");
         chkPaymentCNAMEBtn.setPrefSize(130, 10);
         chkPaymentCNAMEBtn.setOnAction(actionEvent -> {
-            uitl.copyStr(textPara.lsStr + textPara.autoPayClassesStr + "paymentCNAME.properties\n", chkPaymentCNAMEBtn.getText() + ".properties 检查指令", sudoYRBPg1.isSelected());
+            if(!uitl.isNullOrSpace(folderName.getText())){
+                uitl.copyStr("cat " +  textPara.autoPayClassesStr + "paymentCNAME.properties | grep "+ folderName.getText(), chkPaymentCNAMEBtn.getText() + ".properties 检查指令", sudoYRBPg1.isSelected());
+
+            }else {
+                uitl.copyStr(textPara.lsStr + textPara.autoPayClassesStr + "paymentCNAME.properties\n", chkPaymentCNAMEBtn.getText() + ".properties 检查指令", sudoYRBPg1.isSelected());
+            }
         });
 
         gridPg1.add(paymentPathBtn, 1, 2);
@@ -384,7 +394,7 @@ public class HelloApplication extends Application {
 //視窗頁面配置
         tabPane.getTabs().addAll(linuxTab, dfStateTab, logTab, hostTab);
 
-        Label versionText = new Label("V1.0");
+        Label versionText = new Label("V1.0.1");
         HBox hBox = new HBox();
         hBox.getChildren().add(versionText);
         hBox.setAlignment(Pos.CENTER_RIGHT);
