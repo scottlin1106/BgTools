@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * Date: 2022-07-27
  */
 
-public class okHttp3Util {
+public class OkHttp3Util {
 
     public static String formPost(String url, Map<String, Object> postMap) {
         return formPost(url, postMap, null, 3, 3);
@@ -220,7 +220,7 @@ public class okHttp3Util {
     public static void main(String[] args) {
         String url = "http://35.220.204.236/pay/index.jsp";
 //        String url = "http://pay.dxin.xyz/api/pay/create_order";
-        String response = uitl.getHostIp("zhmff-top.bananavalue.com");
+        String response = Utils.getHostIp("zhmff-top.bananavalue.com");
         System.out.println("[ response ] :" + response);
     }
 }

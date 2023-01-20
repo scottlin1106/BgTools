@@ -5,44 +5,24 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import net.sf.json.JSONObject;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 
-public class uitl {
-    public static String getLogDate(String date) {
-        LocalDate localDate = LocalDate.parse(date);
-        return localDate.toString();
-    }
+import static com.bgtools.DateUtil.*;
 
-
-    public static Boolean validateDate(String day) {
-        LocalDate now = LocalDate.now();
-        LocalDate date = LocalDate.parse(day);
-        long day1 = now.toEpochDay();
-        long day2 = date.toEpochDay();
-
-        if (Math.abs(day2 - day1) > 7) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    public static boolean checkDate(String sourceDate) {
-        if (sourceDate == null) {
-            return false;
-        }
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            dateFormat.setLenient(false);
-            dateFormat.parse(sourceDate);
-            return true;
-        } catch (Exception e) {
-        }
-        return false;
-
-    }
+public class Utils {
 
     public static void copyStr(String str, String title) {
         copyStr(str, title, null, false, false);
@@ -68,7 +48,7 @@ public class uitl {
         final ClipboardContent content = new ClipboardContent();
         String copyStr = "";
         if (sudo) {
-            copyStr += textPara.sudoStr;
+            copyStr += TextPara.sudoStr;
         }
         if (folder != null) {
             copyStr += str + folder + "\n";
@@ -150,39 +130,19 @@ public class uitl {
         return postMap;
     }
 
-    public static String setLogStr(String date, String keyword, String col, Boolean isUat) {
+    public static String setLogStr(Boolean isSudo, String date, String keyword) {
+        return setLogStr(isSudo, date, keyword, "0");
+    }
 
-        String lsStr = textPara.SearchStr;
-        if (!"".equals(keyword)) {
-            if (isUat) {
-                lsStr = textPara.SearchStr + " | grep -C " + col + " " + keyword;
-            } else {
-                if (isNumeric(keyword)) {
-                    String day = keyword.substring(4, 6);
-                    if (keyword.length() > 7 && Integer.parseInt(day) < 31) {
-                        String year = "20" + keyword.substring(0, 2);
-                        String month = keyword.substring(2, 4);
-                        Integer hour = Integer.parseInt(keyword.substring(6, 8));
-                        String vDate = year + "-" + month + "-" + day;
-                        if (checkDate(vDate) && validateDate(vDate)) {
-                            lsStr = textPara.SearchStr + "." + getLogDate(vDate) + ".log";
-                        } else if (!validateDate(vDate)) {
-                            showaAlert("提示", "查找日期超出LOG存檔期限(七天)，請重新查詢。", Alert.AlertType.INFORMATION);
-                            lsStr = "";
-                        }
-
-                    }
-                } else {
-                    lsStr = textPara.SearchStr + "." + date + ".log";
-                }
-                if (!"".equals(lsStr))
-                    lsStr += " | grep -C " + col + " " + keyword;
-            }
-        } else if (!isUat) {
-            lsStr = textPara.SearchStr + "." + date + ".log";
-        }
+    public static String setLogStr(Boolean isSudo, String date, String keyword, String col) {
+        String lsStr = "";
+        TextPara.setFindLogStr(keyword);
+        if (isSudo)
+            lsStr = TextPara.sudoStr + TextPara.getFindLogStr();
+        else lsStr = TextPara.getFindLogStr();
         return lsStr;
     }
+
 
     public static Map<String, Object> hostData(String auth, String method) {
         Map<String, Object> postMap = new HashMap<String, Object>();
@@ -191,7 +151,7 @@ public class uitl {
         return postMap;
     }
 
-    public static String hostStr(String bodyStr, String hostIp,String type) {
+    public static String hostStr(String bodyStr, String hostIp, String type) {
         String apenString = "";
         String serverStr = "Tomcat 服務 ：";
         String redisStr = "Redis 服務 ：";
@@ -213,7 +173,7 @@ public class uitl {
                                 + serverStr + "\n"
                                 + redisStr + "\n";
             } else {
-                String serverStatus = okHttp3Util.formPost("http://" + hostIp + "/"+type+"/index.jsp", new HashMap<>());
+                String serverStatus = OkHttp3Util.formPost("http://" + hostIp + "/" + type + "/index.jsp", new HashMap<>());
                 if (serverStatus.contains("1")) {
                     serverStr += "正常";
                     apenString =
@@ -231,12 +191,12 @@ public class uitl {
         return apenString;
     }
 
-    public static String hostText(String hostIp, String masterAuth, String method,String type) {
+    public static String hostText(String hostIp, String masterAuth, String method, String type) {
         String showStr = "";
 
-        showStr = uitl.hostStr(
-                okHttp3Util.formPost("http://" + hostIp + "/pay/jsp/getServerStatus.jsp", uitl.hostData(masterAuth, method))
-                , hostIp,type);
+        showStr = Utils.hostStr(
+                OkHttp3Util.formPost("http://" + hostIp + "/pay/jsp/getServerStatus.jsp", Utils.hostData(masterAuth, method))
+                , hostIp, type);
         return showStr;
 
     }
@@ -248,7 +208,7 @@ public class uitl {
             hostUrl = hostUrl.substring(0, hostUrl.indexOf("/"));
         }
         String HostIP = "";
-        String bodyStr = okHttp3Util.okHttp3Get(url + hostUrl);
+        String bodyStr = OkHttp3Util.okHttp3Get(url + hostUrl);
         HostIP = JSONObject.fromObject(bodyStr).optString("query");
         return HostIP;
 
@@ -286,6 +246,61 @@ public class uitl {
         } else {
             return false;
         }
+    }
+
+    public static String AESDecrypt(String secretKey, String secretIv, String message) {
+        String result = "";
+        try {
+            if (secretKey.length() > 15) secretKey = secretKey.substring(0, 16);
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes("utf-8"), "AES");
+            IvParameterSpec ivSpec = new IvParameterSpec(secretIv.getBytes("utf-8"));
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+            byte[] requestMessageBytes = Base64.decode(message);
+            byte[] plainText = cipher.doFinal(requestMessageBytes);
+            result = new String(plainText);
+        } catch (NoSuchAlgorithmException e) {
+            System.err.println(e.getMessage());
+        } catch (NoSuchPaddingException e) {
+            System.err.println(e.getMessage());
+        } catch (InvalidAlgorithmParameterException e) {
+            System.err.println(e.getMessage());
+        } catch (BadPaddingException e) {
+            System.err.println(e.getMessage());
+        } catch (UnsupportedEncodingException e) {
+            System.err.println(e.getMessage());
+        } catch (InvalidKeyException e) {
+            System.err.println(e.getMessage());
+        } catch (IllegalBlockSizeException e) {
+            System.err.println(e.getMessage());
+        }
+
+        return result;
+    }
+
+    public static String MD5Sign(String data) {
+        try {
+            if (data == null) {
+                return null;
+            }
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            md5.update(data.getBytes("UTF-8"));
+            byte[] digest = md5.digest();
+
+            StringBuffer hexString = new StringBuffer();
+            String strTemp;
+            for (int i = 0; i < digest.length; i++) {
+                strTemp = Integer.toHexString((digest[i] & 0x000000FF) | 0xFFFFFF00).substring(6);
+                hexString.append(strTemp);
+            }
+            System.out.println("MD5 前：" + data);
+            System.out.println("MD5 后：" + hexString.toString().substring(0, 16));
+
+            return hexString.toString().substring(0, 16);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
 
